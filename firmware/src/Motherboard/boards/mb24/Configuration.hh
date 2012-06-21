@@ -26,6 +26,7 @@
 /// possible time between steps; in practical terms, your time between steps should
 /// be at least eight times this large.  Reducing the interval can cause resource
 /// starvation; leave this at 64uS or greater unless you know what you're doing.
+/// Currently is 64 in the official firmware
 #define INTERVAL_IN_MICROSECONDS 256
 
 #define TICKS_PER_ACCELERATION   5  // lower is better
@@ -203,14 +204,14 @@
 #define MIN_MS_PER_SEGMENT_SD 12000 // from SD card
 #define MIN_MS_PER_SEGMENT_USB 20000 // from USB connection
 
-#define DEFAULT_ACCELERATION 2000.0 // mm/s/s
+#define DEFAULT_ACCELERATION 3000.0 // mm/s/s
 #define DEFAULT_X_ACCELERATION 2000.0 // mm/s/s
 #define DEFAULT_Y_ACCELERATION 2000.0 // mm/s/s
-#define DEFAULT_Z_ACCELERATION 10.0 // mm/s/s
+#define DEFAULT_Z_ACCELERATION 15.0 // mm/s/s
 #define DEFAULT_A_ACCELERATION 200.0 // mm/s/s
 #define DEFAULT_B_ACCELERATION 200.0 // mm/s/s
 
-#define DEFAULT_MAX_XY_JERK 8.0 // ms/s <-- unused if CENTREPEDAL is defined below
+#define DEFAULT_MAX_XY_JERK 10.0 // ms/s <-- unused if CENTREPEDAL is defined below
 #define DEFAULT_MAX_Z_JERK 8.0 // mm/s
 #define DEFAULT_MAX_A_JERK 10.0 // mm/s
 #define DEFAULT_MAX_B_JERK 10.0 // mm/s
