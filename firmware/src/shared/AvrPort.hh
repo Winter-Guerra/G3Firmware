@@ -22,7 +22,7 @@
 #include <util/atomic.h>
 
 #if defined (__AVR_ATmega168__) \
-    || defined (__AVR_ATmega328__) \
+    || defined (__AVR_ATmega328P__) \
     || defined (__AVR_ATmega644P__)
 
     typedef uint8_t port_base_t;
@@ -47,7 +47,7 @@
 
 // We support three platforms: Atmega168 (1 UART), Atmega644, and Atmega1280/2560
 #if defined (__AVR_ATmega168__)     \
-    || defined (__AVR_ATmega328__)  \
+    || defined (__AVR_ATmega328P__)  \
     || defined (__AVR_ATmega644P__) \
     || defined (__AVR_ATmega1280__) \
     || defined (__AVR_ATmega2560__)
