@@ -78,9 +78,9 @@ Point operator- (const Point &a, const Point &b) {
 	Point c = Point(
 		a.coordinates[0] - b.coordinates[0],
 		a.coordinates[1] - b.coordinates[1],
-		a.coordinates[2] - b.coordinates[2],
+		a.coordinates[2] - b.coordinates[2] 
 #if AXIS_COUNT > 3
-		a.coordinates[3] - b.coordinates[3],
+		, a.coordinates[3] - b.coordinates[3],
 		a.coordinates[4] - b.coordinates[4]
 #endif
 	);
@@ -101,9 +101,9 @@ Point Point::abs() {
 	Point absPoint = Point(
 		::abs(coordinates[0]),
 		::abs(coordinates[1]),
-		::abs(coordinates[2]),
+		::abs(coordinates[2]) 
 #if AXIS_COUNT > 3
-		::abs(coordinates[3]),
+		, ::abs(coordinates[3]),
 		::abs(coordinates[4])
 #endif
 	);
