@@ -30,17 +30,15 @@
 /// \ingroup MBv12
 class Motherboard {
 private:
-	const static int STEPPERS = STEPPER_COUNT;
-
-	StepperInterface stepper[STEPPERS];
+	static StepperInterface stepper[STEPPER_COUNT];
 
 	PSU psu;
 
 	/// Microseconds since board initialization
 	volatile micros_t micros;
 
-        /// Private constructor; use the singleton
-        Motherboard(const Pin& psu_pin);
+	/// Private constructor; use the singleton
+	Motherboard(const Pin& psu_pin);
 
 	static Motherboard motherboard;
 public:
@@ -52,7 +50,7 @@ public:
 	void runMotherboardSlice();
 
 	/// Count the number of steppers available on this board.
-	const int getStepperCount() const { return STEPPERS; }
+	const int getStepperCount() const { return STEPPER_COUNT; }
 
         /// Get the stepper interface for the nth stepper.
 	StepperInterface& getStepperInterface(int n)

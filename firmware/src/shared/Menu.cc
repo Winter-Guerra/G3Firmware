@@ -3,6 +3,7 @@
 
 
 #include "Steppers.hh"
+#include "Planner.hh"
 #include "Commands.hh"
 #include "Errors.hh"
 #include "Tool.hh"
@@ -176,7 +177,7 @@ void JogMode::jog(ButtonArray::ButtonName direction) {
 		break;
 	}
 
-	steppers::setTarget(position, interval);
+	planner::addMoveToBuffer(position, interval);
 }
 
 void JogMode::notifyButtonPressed(ButtonArray::ButtonName button) {

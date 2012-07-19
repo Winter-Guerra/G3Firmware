@@ -23,6 +23,7 @@
 #include "Pin.hh"
 #include "Command.hh"
 #include "Point.hh"
+#include "Planner.hh"
 
 #include "Types.hh"
 #include "Motherboard.hh"
@@ -46,23 +47,6 @@ namespace steppers {
     /// \param[in] index Index of the axis to enable or disable
     /// \param[in] enable If true, enable the axis. If false, disable.
     void enableAxis(uint8_t index, bool enable);
-
-    /// Instruct the stepper subsystem to move the machine to the
-    /// given position.
-    /// \param[in] target Position to move to
-    /// \param[in] dda_interval Motion speed, in us per step.
-    void setTarget(const Point& target, int32_t dda_interval);
-
-    /// Instruct the stepper subsystem to move the machine to the
-    /// given position.
-    /// \param[in] target Position to move to
-    /// \param[in] ms Duration of the move, in milliseconds
-    /// \param[in] relative Bitfield specifying whether each axis should
-    ///                     interpret the new position as absolute or
-    ///                     relative.
-    void setTargetNew(const Point& target,
-                      int32_t ms,
-                      uint8_t relative =0);
 
     /// Home one or more axes
     /// \param[in] maximums If true, home in the positive direction
@@ -92,6 +76,13 @@ namespace steppers {
     ///                  through the entire build. If false, it will be
     ///                  disabled when not moving.
     void setHoldZ(bool holdZ);
+
+    void startRunning();
+
+    bool currentBlockChanged(const planner::Block *block_check);
+
+    uint32_t getCurrentStep();
+    uint32_t getCurrentFeedrateAndStep(uint32_t &step_return, uint32_t &steps_to_calc);
 };
 
 #endif // STEPPERS_HH_

@@ -22,6 +22,7 @@
 #include "Motherboard.hh"
 #include "Configuration.hh"
 #include "Steppers.hh"
+#include "Planner.hh"
 #include "Command.hh"
 #include "Eeprom.hh"
 #include "EepromMap.hh"
@@ -29,51 +30,55 @@
 /// Instantiate static motherboard instance
 Motherboard Motherboard::motherboard(PSU_PIN);
 
+/// Set up the stepper pins at compile-tim
+StepperInterface Motherboard::stepper[STEPPER_COUNT] = {
+	#if STEPPER_COUNT > 0
+	StepperInterface(X_DIR_PIN,
+	                 X_STEP_PIN,
+	                 X_ENABLE_PIN,
+	                 X_MAX_PIN,
+	                 X_MIN_PIN,
+	                 eeprom::AXIS_INVERSION)
+	#endif
+	#if STEPPER_COUNT > 1
+	,StepperInterface(Y_DIR_PIN,
+	                 Y_STEP_PIN,
+	                 Y_ENABLE_PIN,
+	                 Y_MAX_PIN,
+	                 Y_MIN_PIN,
+	                 eeprom::AXIS_INVERSION)
+	#endif
+	#if STEPPER_COUNT > 2
+	,StepperInterface(Z_DIR_PIN,
+	                 Z_STEP_PIN,
+	                 Z_ENABLE_PIN,
+	                 Z_MAX_PIN,
+	                 Z_MIN_PIN,
+	                 eeprom::AXIS_INVERSION)
+	#endif
+	#if STEPPER_COUNT > 3
+	,StepperInterface(A_DIR_PIN,
+	                 A_STEP_PIN,
+	                 A_ENABLE_PIN,
+	                 Pin(),
+	                 Pin(),
+	                 eeprom::AXIS_INVERSION)
+	#endif
+	#if STEPPER_COUNT > 4
+	,StepperInterface(B_DIR_PIN,
+	                 B_STEP_PIN,
+	                 B_ENABLE_PIN,
+	                 Pin(),
+	                 Pin(),
+	                 eeprom::AXIS_INVERSION)
+	#endif	
+};
+
+
 /// Create motherboard object
 Motherboard::Motherboard(const Pin& psu_pin) :
         psu(psu_pin)
 {
-	/// Set up the stepper pins on board creation
-#if STEPPER_COUNT > 0
-        stepper[0] = StepperInterface(X_DIR_PIN,
-                                      X_STEP_PIN,
-                                      X_ENABLE_PIN,
-                                      X_MAX_PIN,
-                                      X_MIN_PIN,
-                                      eeprom::AXIS_INVERSION);
-#endif
-#if STEPPER_COUNT > 1
-        stepper[1] = StepperInterface(Y_DIR_PIN,
-                                      Y_STEP_PIN,
-                                      Y_ENABLE_PIN,
-                                      Y_MAX_PIN,
-                                      Y_MIN_PIN,
-                                      eeprom::AXIS_INVERSION);
-#endif
-#if STEPPER_COUNT > 2
-        stepper[2] = StepperInterface(Z_DIR_PIN,
-                                      Z_STEP_PIN,
-                                      Z_ENABLE_PIN,
-                                      Z_MAX_PIN,
-                                      Z_MIN_PIN,
-                                      eeprom::AXIS_INVERSION);
-#endif
-#if STEPPER_COUNT > 3
-        stepper[3] = StepperInterface(A_DIR_PIN,
-                                      A_STEP_PIN,
-                                      A_ENABLE_PIN,
-                                      Pin(),
-                                      Pin(),
-                                      eeprom::AXIS_INVERSION);
-#endif
-#if STEPPER_COUNT > 4
-        stepper[4] = StepperInterface(B_DIR_PIN,
-                                      B_STEP_PIN,
-                                      B_ENABLE_PIN,
-                                      Pin(),
-                                      Pin(),
-                                      eeprom::AXIS_INVERSION);
-#endif
 }
 
 /// Reset the motherboard to its initial state.
@@ -101,21 +106,63 @@ void Motherboard::reset() {
 	for (int i = 0; i < STEPPER_COUNT; i++) {
 		stepper[i].init(i);
 	}
+
+	// Defaults are from my cupcake -Rob
+	//X 94.1397046
+	planner::setAxisStepsPerMM(eeprom::getEepromFixed32(eeprom::STEPS_PER_MM+ 0, 94.1397046), 0);
+	//Y 94.1397046             
+	planner::setAxisStepsPerMM(eeprom::getEepromFixed32(eeprom::STEPS_PER_MM+ 4, 94.1397046), 1);
+	//Z 2560.0                 
+	planner::setAxisStepsPerMM(eeprom::getEepromFixed32(eeprom::STEPS_PER_MM+ 8, 2560.0), 2);
+	//A 100.470957613814818    
+	planner::setAxisStepsPerMM(eeprom::getEepromFixed32(eeprom::STEPS_PER_MM+12, 100.470957613814818), 3);
+	//B 100.470957613814818    
+	// planner::setAxisStepsPerMM(eeprom::getEepromFixed32(eeprom::STEPS_PER_MM+16, 100.470957613814818), 4);
+
+
+	// Master acceleraion
+	planner::setAcceleration(eeprom::getEeprom32(eeprom::MASTER_ACCELERATION_RATE, DEFAULT_ACCELERATION));
+
+
+	//X -- default conservative
+	planner::setAxisAcceleration(eeprom::getEeprom32(eeprom::AXIS_ACCELERATION_RATES+ 0, DEFAULT_X_ACCELERATION), 0);
+	//Y -- default conservative            
+	planner::setAxisAcceleration(eeprom::getEeprom32(eeprom::AXIS_ACCELERATION_RATES+ 4, DEFAULT_Y_ACCELERATION), 1);
+	//Z -- default conservative            
+	planner::setAxisAcceleration(eeprom::getEeprom32(eeprom::AXIS_ACCELERATION_RATES+ 8, DEFAULT_Z_ACCELERATION), 2);
+	//A -- default conservative            
+	planner::setAxisAcceleration(eeprom::getEeprom32(eeprom::AXIS_ACCELERATION_RATES+12, DEFAULT_A_ACCELERATION), 3);
+	//B -- default conservative            
+	// planner::setAxisAcceleration(eeprom::getEeprom32(eeprom::AXIS_ACCELERATION_RATES+16, DEFAULT_B_ACCELERATION), 4);
+
+
+#ifdef CENTREPEDAL
+	// uses the same eeprom address as the X/Y junction jerk~
+	planner::setJunctionDeviation(eeprom::getEepromFixed32(eeprom::AXIS_JUNCTION_JERK+ 0, DEFAULT_JUNCTION_DEVIATION));
+#else
+	planner::setMaxXYJerk(eeprom::getEepromFixed32(eeprom::AXIS_JUNCTION_JERK+ 0, DEFAULT_MAX_XY_JERK));
+#endif
+	planner::setMaxAxisJerk(eeprom::getEepromFixed32(eeprom::AXIS_JUNCTION_JERK+ 4, DEFAULT_MAX_Z_JERK), 2);
+	planner::setMaxAxisJerk(eeprom::getEepromFixed32(eeprom::AXIS_JUNCTION_JERK+ 8, DEFAULT_MAX_A_JERK), 3);
+	// planner::setMaxAxisJerk(eeprom::getEepromFixed32(eeprom::AXIS_JUNCTION_JERK+12, DEFAULT_MAX_B_JERK), 4);
+
+	planner::setMinimumPlannerSpeed(eeprom::getEepromFixed32(eeprom::MINIMUM_PLANNER_SPEED, DEFAULT_MINIMUM_PLANNER_SPEED));
+
 	// Initialize the host and slave UARTs
-        UART::getHostUART().enable(true);
-        UART::getHostUART().in.reset();
+	UART::getHostUART().enable(true);
+	UART::getHostUART().in.reset();
 
-        // TODO: These aren't done on other platforms, are they necessary?
-        UART::getHostUART().reset();
-        UART::getHostUART().out.reset();
+	// TODO: These aren't done on other platforms, are they necessary?
+	UART::getHostUART().reset();
+	UART::getHostUART().out.reset();
 
 
-        UART::getSlaveUART().enable(true);
-        UART::getSlaveUART().in.reset();
+	UART::getSlaveUART().enable(true);
+	UART::getSlaveUART().in.reset();
 
-        // TODO: These aren't done on other platforms, are they necessary?
-        UART::getSlaveUART().reset();
-        UART::getSlaveUART().out.reset();
+	// TODO: These aren't done on other platforms, are they necessary?
+	UART::getSlaveUART().reset();
+	UART::getSlaveUART().out.reset();
 
 
 	// Reset and configure timer 1, the microsecond and stepper
