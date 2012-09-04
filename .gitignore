@@ -4,3 +4,7 @@
 build
 html
 *.o
+*.map
+
+# Ignore build log
+firmware/build_all_output
